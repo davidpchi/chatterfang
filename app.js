@@ -1,16 +1,40 @@
+require("dotenv").config();
+
 const express = require("express");
 const members = require("./members");
 const axios = require("axios");
+const mongoose = require("mongoose");
 
 const app = express();
 app.use(express.json());
 
-// A8nJ0BxHVpT4N7RPMfrK5eIwx4DvXO
-
 const PORT = process.env.PORT || 4000;
 
-app.get("/", (request, response) => {
-    response.status(200).json({members: members});
+mongoose.connect(
+    process.env.MONGODB_URI, 
+    {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }
+);
+
+const studentSchema = new mongoose.Schema({
+    roll_no: {
+        type: Number,
+        required: true
+    },
+    name: String,
+    year: Number,
+    subjects: [String]
+});
+
+const Student = mongoose.model('Student', studentSchema);
+
+app.get("/", async (request, response) => {
+    const students = await Student.find({});
+    response.status(200).send(students);
+
+    // response.status(200).json({members: members});
 })
 
 app.post("/", (request, response) => {
@@ -21,6 +45,21 @@ app.post("/", (request, response) => {
     };
 
     members.push(newMember);
+
+    // MONGO DB TEST CODE:
+    // const stud = new Student({
+    //     roll_no: 1001,
+    //     name: 'Madison Hyde',
+    //     year: 3,
+    //     subjects: ['DBMS', 'OS', 'Graph Theory', 'Internet Programming']
+    // });
+    // stud
+    //     .save()
+    //     .then(
+    //         () => console.log("One entry added"), 
+    //         (err) => console.log(err)
+    //     );
+
     response.status(200).json({members: members});
 });
 
