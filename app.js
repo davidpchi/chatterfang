@@ -11,6 +11,13 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 
+app.use((req, res, next) => {
+    //allow access from every, elminate CORS
+    res.setHeader('Access-Control-Allow-Origin','*');
+    //allow request to continue and be handled by routes
+    next();
+});
+
 // connect to the db
 mongoose.connect(
     process.env.MONGODB_URI, 
@@ -64,7 +71,7 @@ app.post("/profiles", async (request, response) => {
     });
 
     const objId = Number(request.body.userId);
-    
+
     Profile.findOneAndUpdate(
         {_id: objId},
         {
