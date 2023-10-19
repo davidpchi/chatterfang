@@ -14,6 +14,10 @@ const PORT = process.env.PORT || 4000;
 app.use((req, res, next) => {
     //allow access from every, elminate CORS
     res.setHeader('Access-Control-Allow-Origin','*');
+    //set the allowed HTTP methods to be requested
+    res.setHeader('Access-Control-Allow-Methods','*');
+    //headers clients can use in their requests
+    res.setHeader('Access-Control-Allow-Headers','*');
     //allow request to continue and be handled by routes
     next();
 });
