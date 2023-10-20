@@ -33,9 +33,9 @@ mongoose.connect(
 
 // initialize our db models
 const profileSchema = new mongoose.Schema({
-    _id: Number,
+    _id: mongoose.Types.ObjectId,
     userId: {
-        type: Number,
+        type: String,
         required: true
     },
     favoriteCommander: String,
@@ -74,14 +74,20 @@ app.post("/profiles", async (request, response) => {
         favoriteCommander: request.body.favoriteCommander,
     });
 
-    const objId = Number(request.body.userId);
+    console.log(request.body.userId);
+    console.log(Number(request.body.userId));
+
+    // convert the userId to a 24 hex character string
+    const paddedUserId = request.body.userId.padEnd(24, "0");
+
+    const objId = new mongoose.Types.ObjectId(paddedUserId);
 
     Profile.findOneAndUpdate(
         {_id: objId},
         {
             _id: objId,
             favoriteCommander: request.body.favoriteCommander,
-            userId: request.body.userId,
+            userId: request.body.userId.toString(),
         },
         {upsert: true, new: true, setDefaultsOnInsert: true}
     ).then(
