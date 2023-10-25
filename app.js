@@ -79,19 +79,19 @@ app.post("/profiles", async (request, response) => {
     // if there is a moxfieldId, perform the moxfieldId validation
     const moxfieldId = request.body.moxfieldId;
     if (moxfieldId) {
-        const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ moxfieldId)
-            .catch(function(error) {
-                if (error.response) {
-                    response.status(400).json({message: "Invalid moxfield id. Moxfield account with moxfield id not found."})
-                    return;
-                }
-            });
-
-        const userName = moxfieldResult.data.userName;
-        if (userName !== moxfieldId) {
-            response.status(400).json({message: "Invalid moxfield id. Moxfield id does match Moxfield account."});
-            return;
-        }
+        try {
+            const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ moxfieldId);
+            const userName = moxfieldResult.data.userName;
+            if (userName !== moxfieldId) {
+                response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield account."});
+                return;
+            }
+        } catch(error) {
+            if (error.response) {
+                response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield account."});
+                return;
+            }
+        };
     }
 
     const profile = new Profile({
