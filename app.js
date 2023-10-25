@@ -39,6 +39,8 @@ const profileSchema = new mongoose.Schema({
         required: true
     },
     favoriteCommander: String,
+    moxfieldId: String,
+    archidektId: String
 });
 
 const Profile = mongoose.model('Profile', profileSchema);
@@ -59,36 +61,50 @@ app.get("/profiles/:userId", async (request, response) => {
 
 // creates or updates a new profile
 app.post("/profiles", async (request, response) => {
-    const result = await axios.get("https://discord.com/api/users/@me", {
+    const discordResult = await axios.get("https://discord.com/api/users/@me", {
         headers: { authorization: `Bearer ${request.headers["access-token"]}` }
     })
-    const discordProfile = result.data;
+    const discordProfile = discordResult.data;
 
     if (discordProfile.id !== request.body.userId) {
         response.status(403).json({message: "Request id does not match access token claims."});
         return;
     }
 
-    const profile = new Profile({
-        userId: request.body.userId,
-        favoriteCommander: request.body.favoriteCommander,
-    });
-
-    console.log(request.body.userId);
-    console.log(Number(request.body.userId));
-
     // convert the userId to a 24 hex character string
     const paddedUserId = request.body.userId.padEnd(24, "0");
 
     const objId = new mongoose.Types.ObjectId(paddedUserId);
 
+    // if there is a moxfieldId, perform the moxfieldId validation
+    const moxfieldId = request.body.moxfieldId;
+    if (moxfieldId) {
+        const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ moxfieldId)
+            .catch(function(error) {
+                if (error.response) {
+                    response.status(400).json({message: "Invalid moxfield id. Moxfield account with moxfield id not found."})
+                    return;
+                }
+            });
+
+        const userName = moxfieldResult.data.userName;
+        if (userName !== moxfieldId) {
+            response.status(400).json({message: "Invalid moxfield id. Moxfield id does match Moxfield account."});
+            return;
+        }
+    }
+
+    const profile = new Profile({
+        _id: objId,
+        userId: request.body.userId.toString(),
+        favoriteCommander: request.body.favoriteCommander,
+        moxfieldId: moxfieldId ? moxfieldId.toString() : undefined,
+        // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
+    });
+
     Profile.findOneAndUpdate(
         {_id: objId},
-        {
-            _id: objId,
-            favoriteCommander: request.body.favoriteCommander,
-            userId: request.body.userId.toString(),
-        },
+        profile,
         {upsert: true, new: true, setDefaultsOnInsert: true}
     ).then(
         () => console.log("One entry added"),
