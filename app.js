@@ -59,6 +59,17 @@ app.get("/profiles/:userId", async (request, response) => {
     response.status(200).send(profiles);
 })
 
+// returns a moxfield account for a specific user if one exists
+app.get("/moxfield/:moxfieldId", async (request, response) => {
+    try {
+        const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ request.params.moxfieldId);
+        const moxfieldData = moxfieldResult.data;
+        response.status(200).json(moxfieldData);
+    } catch (error) {
+        response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield account."});
+    }
+})
+
 // creates or updates a new profile
 app.post("/profiles", async (request, response) => {
     const discordResult = await axios.get("https://discord.com/api/users/@me", {
