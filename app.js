@@ -1,10 +1,13 @@
-require("dotenv").config();
-const express = require("express");
-const members = require("./members");
-const axios = require("axios");
-const mongoose = require("mongoose");
+import dotenv from "dotenv";
+import express from "express";
+import axios from "axios";
+import mongoose from "mongoose";
+
+import { verifyUser } from "./auth.js";
+import { Profile } from "./db.js";
 
 const app = express();
+dotenv.config();
 
 // MAKE SURE ALL REQUESTS HAVE CONTENT-TYPE: APPLICATION/JSON
 app.use(express.json());
@@ -21,29 +24,6 @@ app.use((req, res, next) => {
     //allow request to continue and be handled by routes
     next();
 });
-
-// connect to the db
-mongoose.connect(
-    process.env.MONGODB_URI, 
-    {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    }
-);
-
-// initialize our db models
-const profileSchema = new mongoose.Schema({
-    _id: mongoose.Types.ObjectId,
-    userId: {
-        type: String,
-        required: true
-    },
-    favoriteCommander: String,
-    moxfieldId: String,
-    archidektId: String
-});
-
-const Profile = mongoose.model('Profile', profileSchema);
 
 // handlers
 
@@ -72,13 +52,11 @@ app.get("/moxfield/:moxfieldId", async (request, response) => {
 
 // creates or updates a new profile
 app.post("/profiles", async (request, response) => {
-    const discordResult = await axios.get("https://discord.com/api/users/@me", {
-        headers: { authorization: `Bearer ${request.headers["access-token"]}` }
-    })
-    const discordProfile = discordResult.data;
+    const authResult = await verifyUser(request, response);
 
-    if (discordProfile.id !== request.body.userId) {
-        response.status(403).json({message: "Request id does not match access token claims."});
+    // auth result will be false if there is an auth error
+    // the response should be properly set by verifyUser
+    if (!authResult) {
         return;
     }
 
