@@ -65,9 +65,9 @@ app.post("/profiles", async (request, response) => {
 
     const objId = new mongoose.Types.ObjectId(paddedUserId);
 
-    // if there is a moxfieldId, perform the moxfieldId validation
-    const moxfieldId = request.body.moxfieldId;
-    if (moxfieldId) {
+    let moxfieldId = request.body.moxfieldId;
+    // if there is a moxfieldId, perform the moxfieldId validation. Empty moxfield id means caller is removing the moxfield account link.
+    if (moxfieldId !== undefined && moxfieldId !== "") {
         try {
             const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ moxfieldId);
             const userName = moxfieldResult.data.userName;
@@ -87,7 +87,7 @@ app.post("/profiles", async (request, response) => {
         _id: objId,
         userId: request.body.userId.toString(),
         favoriteCommander: request.body.favoriteCommander,
-        moxfieldId: moxfieldId ? moxfieldId.toString() : undefined,
+        moxfieldId: moxfieldId !== undefined ? moxfieldId.toString() : undefined,
         // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
     });
 
