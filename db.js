@@ -21,7 +21,8 @@ const profileSchema = new mongoose.Schema({
     },
     favoriteCommander: String,
     moxfieldId: String,
-    archidektId: String
+    archidektId: String,
+    decks: [{_id: String, deckId: String, source: String}]
 });
 
 export const Profile = mongoose.model('Profile', profileSchema);

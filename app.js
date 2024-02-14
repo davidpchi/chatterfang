@@ -50,6 +50,146 @@ app.get("/moxfield/:moxfieldId", async (request, response) => {
     }
 })
 
+// adds a deck to a given user
+// the deck is identified by a full url, and then we extract the id
+// today, only moxfield is supported
+app.post("/addDeck", async(request, response) => {
+    const authResult = await verifyUser(request, response);
+
+    // auth result will be false if there is an auth error
+    // the response should be properly set by verifyUser
+    if (!authResult) {
+        return;
+    }
+
+    // validate request body
+    if (request.body.url === undefined) {
+        response.status(400).json({message: "Missing deck url."});
+        return;
+    }
+
+    if (request.body.source === undefined) {
+        response.status(400).json({message: "Missing deck source."});
+    } else if (request.body.source !== "moxfield") {
+        // today, only moxfield is the supported deck source
+        response.status(400).json({message: "Invalid deck source."});
+    }
+
+    const rawUrl = request.body.url;
+    const deckSource = request.body.source;
+
+    // validate the deck to make sure it exists in moxfield
+    let startingIndex = 0; 
+    // strip out any potential http and https
+    const httpIndex = rawUrl.indexOf("http://");
+    if (httpIndex > -1) {
+        startingIndex = httpIndex + "http://".length + 1;
+    } else {
+        const httpsIndex = rawUrl.indexOf("https://");
+        if (httpsIndex > -1) {
+            startingIndex = httpIndex + "https://".length + 1;
+        }
+    }
+
+    const deckUrl = rawUrl.substring(startingIndex);
+    const urlContents = deckUrl.split("/");
+
+    // the 3rd item should be our deckId
+    const deckId = urlContents.length === 3 ? urlContents[2] : undefined;
+
+    // make sure the deckId exists
+    if (deckId === undefined || deckId.length === 0) {
+        // if deck id is undefined at this point, this is a bad url.
+        response.status(400).json({message: "Invalid Moxfield url."})
+        return;
+    }
+
+    try {
+        const moxfieldResult = await axios.get("https://api2.moxfield.com/v3/decks/all/"+ deckId);
+        const publicId = moxfieldResult.data.publicId;
+        if (publicId !== deckId) {
+            response.status(400).json({message: "Invalid deck url. Could not find Moxfield deck."});
+            return;
+        }
+    } catch(error) {
+        if (error.response) {
+            response.status(400).json({message: "Failed to lookup Moxfield deck."});
+            return;
+        }
+    };
+
+    // convert the userId to a 24 hex character string
+    const paddedUserId = request.body.userId.padEnd(24, "0");
+    const objId = new mongoose.Types.ObjectId(paddedUserId);
+
+    const existingProfile = Profile.findOne({_id: objId});
+    if (existingProfile) {
+        console.log("found the profile")
+    }
+    
+    const newDeckId = new mongoose.Types.ObjectId();
+
+    Profile.findOneAndUpdate(
+        {_id: objId},
+        {$push: {
+            decks: {
+                _id: newDeckId,
+                deckId: deckId,
+                source: deckSource,
+            }
+        }}
+    ).then(
+        () => console.log("Added deck to user."),
+        (err) => console.log(err)
+    );
+
+    response.status(200).json({});
+
+    return;
+});
+
+// removes a deck from a user based on a deckId
+app.post("/removeDeck", async(request, response) => {
+    const authResult = await verifyUser(request, response);
+
+    // auth result will be false if there is an auth error
+    // the response should be properly set by verifyUser
+    if (!authResult) {
+        return;
+    }
+
+    // convert the userId to a 24 hex character string
+    const paddedUserId = request.body.userId.padEnd(24, "0");
+    const objId = new mongoose.Types.ObjectId(paddedUserId);
+
+    const existingProfile = Profile.findOne({_id: objId});
+    if (existingProfile) {
+        console.log("found the profile")
+    }
+
+    // validate the request body
+    const deckId = request.body.deckId;
+    if (deckId === undefined) {
+        response.status(400).json({message: "Invalid Moxfield url."})
+        return;
+    }
+
+    Profile.findOneAndUpdate(
+        {_id: objId},
+        {$pull: {
+            decks: {_id: request.body.deckId},
+        }},
+        {new: true}
+    ).then(
+        () => console.log("Removed deck from user."),
+        (err) => console.log(err)
+    );
+
+    response.status(200).json({});
+
+    return;
+});
+
 // creates or updates a new profile
 app.post("/profiles", async (request, response) => {
     const authResult = await verifyUser(request, response);
