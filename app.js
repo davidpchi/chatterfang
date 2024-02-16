@@ -122,7 +122,7 @@ app.post("/addDeck", async(request, response) => {
     const paddedUserId = request.body.userId.padEnd(24, "0");
     const objId = new mongoose.Types.ObjectId(paddedUserId);
 
-    const existingProfile = Profile.findOne({_id: objId});
+    const existingProfile = await Profile.findOne({_id: objId});
     if (existingProfile) {
         // there is a 10 deck limit
         if (existingProfile.decks.length >= 10) {
