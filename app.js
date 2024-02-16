@@ -124,7 +124,11 @@ app.post("/addDeck", async(request, response) => {
 
     const existingProfile = Profile.findOne({_id: objId});
     if (existingProfile) {
-        console.log("found the profile")
+        // there is a 10 deck limit
+        if (existingProfile.decks.length >= 10) {
+            response.status(400).json({message: "Deck limit reached."});
+            return;
+        }
     }
     
     const newDeckId = new mongoose.Types.ObjectId();
@@ -165,6 +169,9 @@ app.post("/removeDeck", async(request, response) => {
     const existingProfile = Profile.findOne({_id: objId});
     if (existingProfile) {
         console.log("found the profile")
+    } else {
+        response.status(400).json({message: "User not found."})
+        return;
     }
 
     // validate the request body
