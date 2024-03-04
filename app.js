@@ -40,13 +40,24 @@ app.get("/profiles/:userId", async (request, response) => {
 })
 
 // returns a moxfield account for a specific user if one exists
-app.get("/moxfield/:moxfieldId", async (request, response) => {
+app.get("/moxfield/profile/:moxfieldId", async (request, response) => {
     try {
         const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ request.params.moxfieldId);
         const moxfieldData = moxfieldResult.data;
         response.status(200).json(moxfieldData);
     } catch (error) {
         response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield account."});
+    }
+})
+
+// returns a moxfield deck for a specific id if one exists
+app.get("/moxfield/deck/:moxfieldId", async (request, response) => {
+    try {
+        const moxfieldResult = await axios.get("https://api2.moxfield.com/v3/decks/all/"+ request.params.moxfieldId);
+        const moxfieldData = moxfieldResult.data;
+        response.status(200).json(moxfieldData);
+    } catch (error) {
+        response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield deck."});
     }
 })
 
