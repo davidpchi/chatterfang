@@ -266,6 +266,7 @@ app.post("/profiles", async (request, response) => {
         (err) => {
             console.log(err);
             response.status(503).json({message: "Error occured trying to update or create profile."});
+            return;
         }
     );
 
