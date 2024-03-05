@@ -249,7 +249,7 @@ app.post("/profiles", async (request, response) => {
     //     // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
     // });
 
-    Profile.findOneAndUpdate(
+    const result = Profile.findOneAndUpdate(
         {_id: objId},
         { $set: { 
             "_id": objId,
@@ -262,13 +262,14 @@ app.post("/profiles", async (request, response) => {
     ).then(
         () => {
             console.log("One entry added");
-            response.status(200).json(profile);
         },
         (err) => {
             console.log(err);
             response.status(503).json({message: "Error occured trying to update or create profile."});
         }
     );
+
+    response.status(200).json(result);
 });
 
 // app.delete("/:userId", (request, response) => {
