@@ -260,11 +260,15 @@ app.post("/profiles", async (request, response) => {
         }},
         {upsert: true, new: true, setDefaultsOnInsert: true}
     ).then(
-        () => console.log("One entry added"),
-        (err) => console.log(err)
+        () => {
+            console.log("One entry added");
+            response.status(200).json(profile);
+        },
+        (err) => {
+            console.log(err);
+            response.status(503).json({message: "Error occured trying to update or create profile."});
+        }
     );
-    
-    response.status(200).json(profile);
 });
 
 // app.delete("/:userId", (request, response) => {
