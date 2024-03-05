@@ -247,6 +247,8 @@ app.post("/profiles", async (request, response) => {
         favoriteCommander: request.body.favoriteCommander,
         moxfieldId: moxfieldId !== undefined ? moxfieldId.toString() : undefined,
         // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
+        // we shouldn't update the decks through this endpoint
+        decks: undefined,
     });
 
     Profile.findOneAndUpdate(
