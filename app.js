@@ -241,19 +241,23 @@ app.post("/profiles", async (request, response) => {
         };
     }
 
-    const profile = new Profile({
-        _id: objId,
-        userId: request.body.userId.toString(),
-        favoriteCommander: request.body.favoriteCommander,
-        moxfieldId: moxfieldId !== undefined ? moxfieldId.toString() : undefined,
-        // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
-        // we shouldn't update the decks through this endpoint
-        decks: undefined,
-    });
+    // const profile = new Profile({
+    //     _id: objId,
+    //     userId: request.body.userId.toString(),
+    //     favoriteCommander: request.body.favoriteCommander,
+    //     moxfieldId: moxfieldId !== undefined ? moxfieldId.toString() : undefined,
+    //     // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
+    // });
 
     Profile.findOneAndUpdate(
         {_id: objId},
-        profile,
+        { $set: { 
+            "_id": objId,
+            "userId": request.body.userId.toString(),
+            "favoriteCommander": request.body.favoriteCommander,
+            "moxfieldId": moxfieldId !== undefined ? moxfieldId.toString() : undefined,
+            // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
+        }},
         {upsert: true, new: true, setDefaultsOnInsert: true}
     ).then(
         () => console.log("One entry added"),
