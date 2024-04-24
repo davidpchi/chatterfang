@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 
 import { verifyUser } from "./auth.js";
 import { Profile } from "./db.js";
+import { submitMatch } from "./googleFormsService.js";
 
 const app = express();
 dotenv.config();
@@ -272,6 +273,61 @@ app.post("/profiles", async (request, response) => {
 
     response.status(200).json(result);
 });
+
+app.post("/match", async (request, response) => {
+
+    const date = new Date();
+
+    // validate date
+    if (date === undefined) {
+        response.status(400).json({message: "Missing required ISO String Date." });
+        return;
+    }
+
+    const player1 = request.body.player1;
+    const player2 = request.body.player2;
+    const player3 = request.body.player3;
+    const player4 = request.body.player4;
+
+    const result = await submitMatch(
+        date,
+        player1 ? {
+            name: player1.name,
+            commander: player1.commander,    
+            turnOrder: player1.turnOrder,
+            rank: player1.rank
+        } : undefined,
+        player2 ? {
+            name: player2.name,
+            commander: player2.commander,    
+            turnOrder: player2.turnOrder,
+            rank: player2.rank
+        } : undefined,
+        player3 ? {
+            name: player3.name,
+            commander: player3.commander,    
+            turnOrder: player3.turnOrder,
+            rank: player3.rank
+        } : undefined,
+        player4 ? {
+            name: player4.name,
+            commander: player4.commander,    
+            turnOrder: player4.turnOrder,
+            rank: player4.rank
+        } : undefined,
+        request.body.turnCount,
+        request.body.extraNotes,
+        request.body.firstKOTurn,
+        request.body.timeLength
+    )
+
+    if (result === false) {
+        response.status(500).json({message: "Failed to send form data."});
+        return;
+    }
+
+    response.status(204).json({});
+})
 
 // app.delete("/:userId", (request, response) => {
 //     const filteredMembers = members.filter(
