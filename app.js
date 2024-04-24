@@ -274,7 +274,7 @@ app.post("/profiles", async (request, response) => {
     response.status(200).json(result);
 });
 
-app.post("/match", async (request, response) => {
+app.post("/matches", async (request, response) => {
 
     const date = new Date();
 
