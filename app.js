@@ -274,7 +274,7 @@ app.post("/profiles", async (request, response) => {
 
 // TODO: we should probably merge this in with the /profiles POST endpoint and improve how auth is done there 
 // to allow for better permissions checks than a blanket "YES" or "NO"
-app.post("/profiles/link", async (request, response) => {
+app.post("/linkprofile", async (request, response) => {
     const authResult = await verifyAdmin(request, response);
 
     if (!authResult) {

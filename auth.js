@@ -1,4 +1,7 @@
+import dotenv from "dotenv";
 import axios from "axios";
+
+dotenv.config();
 
 const ROOT_ADMIN_ID = process.env.ROOT_ADMIN_ID || undefined;
 
@@ -28,13 +31,13 @@ export async function verifyAdmin(request, response) {
         })
         const discordProfile = discordResult.data;
 
-        if (ROOT_ADMIN !== undefined && discordProfile.id === ROOT_ADMIN_ID) {
+        if (ROOT_ADMIN_ID !== undefined && discordProfile.id === ROOT_ADMIN_ID) {
             return true;
         }
 
         response.status(403).json({message: "Authorization failed."});
         return false;
-    } catch {
+    } catch (exception) {
         response.status(500).json({message: "Internal Server Error."});
         return false;
     }
