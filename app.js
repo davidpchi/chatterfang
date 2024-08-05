@@ -3,7 +3,7 @@ import express from "express";
 import axios from "axios";
 import mongoose from "mongoose";
 
-import { verifyUser } from "./auth.js";
+import { verifyUser, verifyAdmin } from "./auth.js";
 import { Profile } from "./db.js";
 import { submitMatch } from "./googleFormsService.js";
 
@@ -277,14 +277,14 @@ app.post("/profiles", async (request, response) => {
 app.post("/profiles/link", async (request, response) => {
     const authResult = await verifyAdmin(request, response);
 
+    if (!authResult) {
+        return;
+    }
+
     // convert the userId to a 24 hex character string
     const paddedUserId = request.body.userId.padEnd(24, "0");
 
     const objId = new mongoose.Types.ObjectId(paddedUserId);
-
-    if (!authResult) {
-        return;
-    }
 
     const toskiId = request.body.toskiId;
 
