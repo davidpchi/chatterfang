@@ -26,8 +26,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// handlers
-
 // returns all profiles 
 app.get("/profiles", async (request, response) => {
     const profiles = await Profile.find({});
@@ -273,6 +271,43 @@ app.post("/profiles", async (request, response) => {
 
     response.status(200).json(result);
 });
+
+// TODO: we should probably merge this in with the /profiles POST endpoint and improve how auth is done there 
+// to allow for better permissions checks than a blanket "YES" or "NO"
+app.post("/profiles/link", async (request, response) => {
+    const authResult = await verifyAdmin(request, response);
+
+    // convert the userId to a 24 hex character string
+    const paddedUserId = request.body.userId.padEnd(24, "0");
+
+    const objId = new mongoose.Types.ObjectId(paddedUserId);
+
+    if (!authResult) {
+        return;
+    }
+
+    const toskiId = request.body.toskiId;
+
+    const result = Profile.findOneAndUpdate(
+        {_id: objId},
+        { $set: { 
+            "_id": objId,
+            "toskiId": toskiId !== undefined ? toskiId.toString() : undefined,
+        }},
+        {upsert: true, new: true, setDefaultsOnInsert: true}
+    ).then(
+        () => {
+            console.log("Updated profile via linking.");
+        },
+        (err) => {
+            console.log(err);
+            response.status(503).json({message: "Error occured trying to update or create profile via linking."});
+            return;
+        }
+    );
+
+    response.status(200).json(result);
+})
 
 app.post("/matches", async (request, response) => {
 
