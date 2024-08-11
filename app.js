@@ -341,7 +341,7 @@ app.post("/profiles", async (request, response) => {
             "userId": request.body.userId.toString(),
             "favoriteCommander": request.body.favoriteCommander,
             "moxfieldId": moxfieldId !== undefined ? moxfieldId.toString() : undefined,
-            // archidektId: request.body.archidektId ? request.body.archidektId.toString(): undefined,
+            "archidektId": request.body.archidektId ? request.body.archidektId.toString(): undefined,
         }},
         {upsert: true, new: true, setDefaultsOnInsert: true}
     ).then(
