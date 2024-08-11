@@ -162,7 +162,7 @@ app.post("/addDeck", async(request, response) => {
                 const archidektResult = await axios.get("https://archidekt.com/api/decks/"+ deckId + "/");
                 const publicId = archidektResult.data.id;
                 if (publicId.toString() !== deckId.toString()) {
-                    response.status(400).json({message: `Invalid deck url. Could not find Archidekt deck.${publicId}.${deckId}`});
+                    response.status(400).json({message: `Invalid deck url. Could not find Archidekt deck.`});
                     return;
                 }
             } catch(error) {
