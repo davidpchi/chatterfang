@@ -89,7 +89,7 @@ app.get("/archidekt/profile/:archidektId", async (request, response) => {
         response.status(200).json(firstResult.owner);
         return;
     } catch (error) {
-        response.status(400).json({message: "Invalid Archidekt id. Could not find Archidekt account."});
+        response.status(400).json({message: `Invalid Archidekt id. Could not find Archidekt account.${error}.`});
         return;
     }
 })
