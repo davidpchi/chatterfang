@@ -36,6 +36,7 @@ app.get("/profiles", async (request, response) => {
 app.get("/profiles/:userId", async (request, response) => {
     const profiles = await Profile.find({userId: request.params.userId});
     response.status(200).send(profiles);
+    return;
 })
 
 // returns a moxfield account for a specific user if one exists
@@ -44,8 +45,10 @@ app.get("/moxfield/profile/:moxfieldId", async (request, response) => {
         const moxfieldResult = await axios.get("https://api2.moxfield.com/v1/users/"+ request.params.moxfieldId);
         const moxfieldData = moxfieldResult.data;
         response.status(200).json(moxfieldData);
+        return;
     } catch (error) {
         response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield account."});
+        return;
     }
 })
 
@@ -55,8 +58,39 @@ app.get("/moxfield/deck/:moxfieldId", async (request, response) => {
         const moxfieldResult = await axios.get("https://api2.moxfield.com/v3/decks/all/"+ request.params.moxfieldId);
         const moxfieldData = moxfieldResult.data;
         response.status(200).json(moxfieldData);
+        return;
     } catch (error) {
         response.status(400).json({message: "Invalid moxfield id. Could not find Moxfield deck."});
+        return;
+    }
+})
+
+// returns a archidekt account for a specific user if one exists
+app.get("/archidekt/profile/:archidektId", async (request, response) => {
+    try {
+        // this hits an archidekt deck search API, so we can use the first result of the search as the best match archidekt profile
+        const archidektResult = await axios.get("https://archidekt.com/api/decks/cards/?orderBy=-createdAt&ownerexact=true&owner="+ request.params.archidektId);
+        const archidektData = archidektResult.data;
+
+        // now we need to dive into the first search result to get the user out
+        const results = archidektData !== undefined && archidektData.results !== undefined ? archidektData.results : [];
+
+        if (results.length > 0) {
+            throw new Error("Results are missing.");
+        }
+
+        const firstResult = results[0];
+
+        if (firstResult === undefined) {
+            throw new Error("Invalid search result.");
+        }
+
+        // send the first result's owner
+        response.status(200).json(firstResult.owner);
+        return;
+    } catch (error) {
+        response.status(400).json({message: "Invalid Archidekt id. Could not find Archidekt account."});
+        return;
     }
 })
 
@@ -66,8 +100,10 @@ app.get("/archidekt/deck/:archidektId", async (request, response) => {
         const archidektResult = await axios.get("https://archidekt.com/api/decks/"+ request.params.archidektId + "/");
         const archidektData = archidektResult.data;
         response.status(200).json(archidektData);
+        return;
     } catch (error) {
         response.status(400).json({message: "Invalid Archidekt id. Could not find Archidekt deck."});
+        return;
     }
 })
 
