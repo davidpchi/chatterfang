@@ -76,7 +76,7 @@ app.get("/archidekt/profile/:archidektId", async (request, response) => {
         const results = archidektData !== undefined && archidektData.results !== undefined ? archidektData.results : [];
 
         if (results.length > 0) {
-            throw new Error("Results are missing.");
+            throw new Error(`Results are missing.${request.params.archidektId}.${archidektData}.`);
         }
 
         const firstResult = results[0];
