@@ -104,29 +104,64 @@ app.post("/addDeck", async(request, response) => {
     const deckUrl = rawUrl.substring(startingIndex);
     const urlContents = deckUrl.split("/");
 
-    // the 3rd item should be our deckId
-    const deckId = urlContents.length === 3 ? urlContents[2] : undefined;
+    // make sure the deckId is valid for the source
+    switch (deckSource) {
+        case "moxfield": {
+            // the 3rd item should be our deckId
+            const deckId = urlContents.length === 3 ? urlContents[2] : undefined;
 
-    // make sure the deckId exists
-    if (deckId === undefined || deckId.length === 0) {
-        // if deck id is undefined at this point, this is a bad url.
-        response.status(400).json({message: "Invalid Moxfield url."})
-        return;
+            // make sure the deckId exists
+            if (deckId === undefined || deckId.length === 0) {
+                // if deck id is undefined at this point, this is a bad url.
+                response.status(400).json({message: "Invalid Moxfield url."})
+                return;
+            }
+
+            try {
+                const moxfieldResult = await axios.get("https://api2.moxfield.com/v3/decks/all/"+ deckId);
+                const publicId = moxfieldResult.data.publicId;
+                if (publicId !== deckId) {
+                    response.status(400).json({message: "Invalid deck url. Could not find Moxfield deck."});
+                    return;
+                }
+            } catch(error) {
+                if (error.response) {
+                    response.status(500).json({message: "Failed to lookup Moxfield deck."});
+                    return;
+                }
+            };
+            break;
+        }
+        case "archidekt": {
+            // the 4th item should be our deckId
+            const deckId = urlContents.length === 4 ? urlContents[3] : undefined;
+
+            // make sure the deckId exists
+            if (deckId === undefined || deckId.length === 0) {
+                // if deck id is undefined at this point, this is a bad url.
+                response.status(400).json({message: "Invalid Archidekt url."})
+                return;
+            }
+
+            try {
+                const archidektResult = await axios.get("https://archidekt.com/api/decks/"+ deckId + "/");
+                const publicId = archidektResult.data.id;
+                if (publicId !== deckId) {
+                    response.status(400).json({message: "Invalid deck url. Could not find Archidekt deck."});
+                    return;
+                }
+            } catch(error) {
+                if (error.response) {
+                    response.status(500).json({message: "Failed to lookup Archidekt deck."});
+                    return;
+                }
+            };
+            break;
+        }
+        default: 
+            response.status(400).json({message: "Invalid source."});
+            return;
     }
-
-    try {
-        const moxfieldResult = await axios.get("https://api2.moxfield.com/v3/decks/all/"+ deckId);
-        const publicId = moxfieldResult.data.publicId;
-        if (publicId !== deckId) {
-            response.status(400).json({message: "Invalid deck url. Could not find Moxfield deck."});
-            return;
-        }
-    } catch(error) {
-        if (error.response) {
-            response.status(400).json({message: "Failed to lookup Moxfield deck."});
-            return;
-        }
-    };
 
     // convert the userId to a 24 hex character string
     const paddedUserId = request.body.userId.padEnd(24, "0");
@@ -140,7 +175,7 @@ app.post("/addDeck", async(request, response) => {
             return;
         }
     }
-    
+
     const newDeckId = new mongoose.Types.ObjectId();
 
     Profile.findOneAndUpdate(
@@ -272,9 +307,8 @@ app.post("/profiles", async (request, response) => {
     response.status(200).json(result);
 });
 
-// TODO: we should probably merge this in with the /profiles POST endpoint and improve how auth is done there 
-// to allow for better permissions checks than a blanket "YES" or "NO"
-app.post("/linkprofile", async (request, response) => {
+// improve how auth is done there to allow for better permissions checks than a blanket "YES" or "NO"
+app.post("/profile/:userId/link", async (request, response) => {
     const authResult = await verifyAdmin(request, response);
 
     if (!authResult) {
@@ -282,9 +316,16 @@ app.post("/linkprofile", async (request, response) => {
     }
 
     // convert the userId to a 24 hex character string
-    const paddedUserId = request.body.userId.padEnd(24, "0");
+    const paddedUserId = request.params.userId.padEnd(24, "0");
 
     const objId = new mongoose.Types.ObjectId(paddedUserId);
+
+    const existingProfile = await Profile.findOne({_id: objId});
+    if (!existingProfile) {
+        // this profile doesn't exist, so we cannot update it
+        response.status(404).json({message: request.params.userId.toString() + " not found."});
+        return;
+    }
 
     const toskiId = request.body.toskiId;
 
