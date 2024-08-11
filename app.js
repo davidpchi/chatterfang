@@ -75,9 +75,7 @@ app.get("/archidekt/profile/:archidektId", async (request, response) => {
         // now we need to dive into the first search result to get the user out
         const results = archidektData !== undefined && archidektData.results !== undefined ? archidektData.results : [];
 
-        console.dir(archidektData);
-
-        if (results.length > 0) {
+        if (results.length === 0) {
             throw new Error(`Results are missing.${request.params.archidektId}.${archidektData}.`);
         }
 
