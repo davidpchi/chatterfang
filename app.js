@@ -115,6 +115,7 @@ app.post("/addDeck", async(request, response) => {
         }
     }
 
+    let deckId = "";
     const deckUrl = rawUrl.substring(startingIndex);
     const urlContents = deckUrl.split("/");
 
@@ -122,7 +123,7 @@ app.post("/addDeck", async(request, response) => {
     switch (deckSource) {
         case "moxfield": {
             // the 3rd item should be our deckId
-            const deckId = urlContents.length === 3 ? urlContents[2] : undefined;
+            deckId = urlContents.length === 3 ? urlContents[2] : undefined;
 
             // make sure the deckId exists
             if (deckId === undefined || deckId.length === 0) {
@@ -148,7 +149,7 @@ app.post("/addDeck", async(request, response) => {
         }
         case "archidekt": {
             // the 3rd item should be our deckId
-            const deckId = urlContents.length === 3 ? urlContents[2] : undefined;
+            deckId = urlContents.length === 3 ? urlContents[2] : undefined;
 
             // make sure the deckId exists
             if (deckId === undefined || deckId.length === 0) {
@@ -160,7 +161,7 @@ app.post("/addDeck", async(request, response) => {
             try {
                 const archidektResult = await axios.get("https://archidekt.com/api/decks/"+ deckId + "/");
                 const publicId = archidektResult.data.id;
-                if (publicId !== deckId) {
+                if (publicId.toString() !== deckId.toString()) {
                     response.status(400).json({message: `Invalid deck url. Could not find Archidekt deck.${publicId}.${deckId}`});
                     return;
                 }
