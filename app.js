@@ -60,6 +60,18 @@ app.get("/moxfield/deck/:moxfieldId", async (request, response) => {
     }
 })
 
+// returns a moxfield deck for a specific id if one exists
+app.get("/archidekt/deck/:archidektId", async (request, response) => {
+    try {
+        const archidektResult = await axios.get("https://archidekt.com/api/decks/"+ request.params.archidektId + "/");
+        const archidektData = archidektResult.data;
+        response.status(200).json(archidektData);
+    } catch (error) {
+        response.status(400).json({message: "Invalid Archidekt id. Could not find Archidekt deck."});
+    }
+})
+
+
 // adds a deck to a given user
 // the deck is identified by a full url, and then we extract the id
 // today, only moxfield is supported
