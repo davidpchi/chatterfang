@@ -93,7 +93,7 @@ app.post("/addDeck", async(request, response) => {
     if (request.body.source === undefined) {
         response.status(400).json({message: "Missing deck source."});
         return;
-    } else if (request.body.source !== "moxfield" || request.body.source !== "archidekt") {
+    } else if (request.body.source !== "moxfield" && request.body.source !== "archidekt") {
         // today, only moxfield and archidekt are only the supported deck sources
         response.status(400).json({message: "Invalid deck source."});
         return;
