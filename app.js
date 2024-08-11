@@ -147,8 +147,8 @@ app.post("/addDeck", async(request, response) => {
             break;
         }
         case "archidekt": {
-            // the 4th item should be our deckId
-            const deckId = urlContents.length === 4 ? urlContents[3] : undefined;
+            // the 3rd item should be our deckId
+            const deckId = urlContents.length === 3 ? urlContents[2] : undefined;
 
             // make sure the deckId exists
             if (deckId === undefined || deckId.length === 0) {
