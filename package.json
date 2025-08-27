@@ -1,25 +1,25 @@
 {
-  "name": "chatterfang",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "scripts": {
-    "start": "nodemon app.js"
-  },
-  "type": "module",
-  "keywords": [],
-  "author": "doomgeek",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.5.1",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "mongoose": "^7.6.3"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "engines": {
-    "node":"18.9.0"
-  }
+    "name": "chatterfang",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "scripts": {
+        "start": "nodemon app.js"
+    },
+    "type": "module",
+    "keywords": [],
+    "author": "doomgeek",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^1.5.1",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "mongoose": "^7.6.3"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    },
+    "engines": {
+        "node": "22.X"
+    }
 }
