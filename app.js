@@ -486,6 +486,6 @@ cron.schedule("0 1 * * *", async () => {
 
 // Optional: Initial refresh on server startup
 // Uncomment the line below to refresh commanders when the server starts
-await refreshCommanderList();
+// await refreshCommanderList();
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
