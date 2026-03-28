@@ -27,3 +27,26 @@ const profileSchema = new mongoose.Schema({
 });
 
 export const Profile = mongoose.model('Profile', profileSchema);
+
+// Commander list schema - stores all Magic: The Gathering commanders from Scryfall
+const commanderSchema = new mongoose.Schema({
+    scryfallId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    friendlyName: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    image: String,
+    colorIdentity: [String],
+    scryfallUri: String,
+    lastUpdated: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+export const Commander = mongoose.model('Commander', commanderSchema);

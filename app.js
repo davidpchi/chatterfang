@@ -2,10 +2,12 @@ import dotenv from "dotenv";
 import express from "express";
 import axios from "axios";
 import mongoose from "mongoose";
+import cron from "node-cron";
 
 import { verifyUser, verifyAdmin } from "./auth.js";
 import { Profile } from "./db.js";
 import { submitMatch } from "./googleFormsService.js";
+import { refreshCommanderList, getAllCommanders } from "./commanderService.js";
 
 const app = express();
 dotenv.config();
@@ -94,7 +96,7 @@ app.get("/archidekt/profile/:archidektId", async (request, response) => {
     }
 })
 
-// returns a moxfield deck for a specific id if one exists
+// returns a archidekt deck for a specific id if one exists
 app.get("/archidekt/deck/:archidektId", async (request, response) => {
     try {
         const archidektResult = await axios.get("https://archidekt.com/api/decks/"+ request.params.archidektId + "/");
@@ -103,6 +105,20 @@ app.get("/archidekt/deck/:archidektId", async (request, response) => {
         return;
     } catch (error) {
         response.status(400).json({message: "Invalid Archidekt id. Could not find Archidekt deck."});
+        return;
+    }
+})
+
+// returns all commanders from the database
+// no authentication required
+app.get("/commanders", async (request, response) => {
+    try {
+        const commanders = await getAllCommanders();
+        response.status(200).json(commanders);
+        return;
+    } catch (error) {
+        console.error("Error fetching commanders:", error);
+        response.status(500).json({message: "Failed to fetch commander list."});
         return;
     }
 })
@@ -456,11 +472,20 @@ app.post("/matches", async (request, response) => {
     response.status(204).json({});
 })
 
-// app.delete("/:userId", (request, response) => {
-//     const filteredMembers = members.filter(
-//         member => member.id !== parseInt(request.params.id)
-//     );
-//     response.status(200).json({members: filteredMembers });
-// })
+// Schedule daily refresh of commander list - runs at 1:00AM every day
+// Current: "0 1 * * *" = 01:00 (1:00 AM) every day
+cron.schedule("0 1 * * *", async () => {
+    console.log("Running scheduled commander list refresh...");
+    try {
+        await refreshCommanderList();
+        console.log("Commander list refresh completed successfully.");
+    } catch (error) {
+        console.error("Error during scheduled commander list refresh:", error);
+    }
+});
+
+// Optional: Initial refresh on server startup
+// Uncomment the line below to refresh commanders when the server starts
+await refreshCommanderList();
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
